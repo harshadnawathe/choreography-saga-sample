@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "coffeehut.delivery.client.http.base-url",
+      "type": "java.lang.String",
+      "description": "Description for coffeehut.delivery.client.http.base-url."
+  }
+] }

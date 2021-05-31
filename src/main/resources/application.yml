@@ -1,0 +1,58 @@
+coffeehut:
+    barista:
+        client:
+            http:
+                base-url: http://localhost:8400/barista
+    delivery:
+        client:
+            http:
+                base-url: http://localhost:8400/delivery
+    payment:
+        client:
+            http:
+                base-url: http://localhost:8400/payment
+spring:
+    cloud:
+        function:
+            definition: initiatePayment;completePayment;refundPayment;takeOrder;confirmOrder;cancelOrder;serveOrder;prepareOrder
+        stream:
+            bindings:
+                takeOrder-in-0:
+                    destination: order-request-channel
+                takeOrder-out-0:
+                    destination: order-accepted-event-channel
+                initiatePayment-in-0:
+                    destination: initiate-payment-request-channel,order-accepted-event-channel
+                initiatePayment-out-0:
+                    destination: payment-initiated-event-channel
+                completePayment-in-0:
+                    destination: complete-payment-request-channel
+                completePayment-out-0:
+                    destination: payment-completed-event-channel
+                completePayment-out-1:
+                    destination: payment-failed-event-channel
+                confirmOrder-in-0:
+                    destination: confirm-order-request-channel,payment-completed-event-channel
+                confirmOrder-out-0:
+                    destination: order-confirmed-event-channel
+                prepareOrder-in-0:
+                    destination: prepare-order-request-channel,order-confirmed-event-channel,order-spilt-event-channel
+                prepareOrder-out-0:
+                    destination: order-prepared-event-channel
+                prepareOrder-out-1:
+                    destination: order-preparation-failed-event-channel
+                serveOrder-in-0:
+                    destination: server-order-request-channel,order-prepared-event-channel
+                serveOrder-out-0:
+                    destination: order-served-event-channel
+                serveOrder-out-1:
+                    destination: order-spilt-event-channel
+                cancelOrder-in-0:
+                    destination: cancel-order-request-channel,payment-failed-event-channel,order-preparation-failed-event-channel
+                cancelOrder-out-0:
+                    destination: order-cancelled-event-channel
+                refundPayment-in-0:
+                    destination: refund-payment-request-channel,order-cancelled-event-channel
+                refundPayment-out-0:
+                    destination: payment-refunded-event-channel
+
