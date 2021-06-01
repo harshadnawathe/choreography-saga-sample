@@ -7,7 +7,6 @@ import com.github.harshadnawathe.coffeehut.domain.payment.RefundRequest
 import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Sinks
 import reactor.util.function.Tuple2
 import reactor.util.function.Tuples
 import java.util.function.Function
@@ -54,35 +53,11 @@ class PaymentApplication {
         CompletePaymentFunction { requests ->
             val paymentConfirmationFlux = requests.flatMap {
                 service.complete(it)
-            }.publish()
-
-            val paymentCompleted = Sinks.many().unicast().onBackpressureBuffer<PaymentCompletedEvent>()
-            val paymentCompletedFlux = paymentConfirmationFlux.filter { it.isSuccess }
-                .doOnNext {
-                    paymentCompleted.tryEmitNext(PaymentCompletedEvent(it.paymentId, it.orderId))
-                }
-                .doOnComplete {
-                    paymentCompleted.tryEmitComplete()
-                }
-
-            val paymentFailed = Sinks.many().unicast().onBackpressureBuffer<PaymentFailedEvent>()
-            val paymentFailedFlux = paymentConfirmationFlux.filter { !it.isSuccess }
-                .doOnNext {
-                    paymentFailed.tryEmitNext(PaymentFailedEvent(it.paymentId, it.orderId))
-                }
-                .doOnComplete {
-                    paymentFailed.tryEmitComplete()
-                }
+            }.publish().autoConnect(2)
 
             return@CompletePaymentFunction Tuples.of(
-                paymentCompleted.asFlux().doOnSubscribe {
-                    paymentCompletedFlux.subscribe()
-                    paymentConfirmationFlux.connect()
-                },
-                paymentFailed.asFlux().doOnSubscribe {
-                    paymentFailedFlux.subscribe()
-                    paymentConfirmationFlux.connect()
-                }
+                paymentConfirmationFlux.filter { it.isSuccess }.map { PaymentCompletedEvent(it.paymentId, it.orderId) },
+                paymentConfirmationFlux.filter { !it.isSuccess }.map { PaymentFailedEvent(it.paymentId, it.orderId) }
             )
         }
 
