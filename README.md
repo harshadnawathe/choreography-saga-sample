@@ -180,7 +180,7 @@ Since we are not focusing much on the domain services here, there implementation
 In real world one might want to expose these service through REST / RPC API.
 
 ### Workflow services
-Domain service are implemented in package `com.github.harshadnawathe.coffeehut.workflow`.
+Workflow service are implemented in package `com.github.harshadnawathe.coffeehut.workflow`.
 There is a separate package for each of the workflow service.
 
 Workflow services do not implement any kind of validation as well as error handling (retry/DLQ) etc.
